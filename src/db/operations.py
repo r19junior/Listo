@@ -4,7 +4,7 @@ import psycopg2
 def get_db_connection():
     return psycopg2.connect(
         host=os.getenv('DB_HOST', 'localhost'),
-        database='yanahuara_db',
+        database=os.getenv('DB_NAME', 'yanahuara_db'),
         user=os.getenv('DB_USER', 'postgres'),
         password=os.getenv('DB_PASS', '1234'),
         port=os.getenv('DB_PORT', '5432')
@@ -12,23 +12,31 @@ def get_db_connection():
 
 def init_db():
     """Crea la columna resumen si no existe."""
+    table = os.getenv('DB_TABLE', 'tramite.anexo')
+    summary_col = os.getenv('DB_SUMMARY_COL', 'resumen')
+    
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("ALTER TABLE tramite.anexo ADD COLUMN IF NOT EXISTS resumen TEXT;")
+    cur.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {summary_col} TEXT;")
     conn.commit()
     cur.close()
     conn.close()
-    print("[INFO] Verificación de esquema de base de datos completada.")
+    print(f"[INFO] Verificación de esquema en {table} completada.")
 
 def get_pending_records(limit=100):
+    table = os.getenv('DB_TABLE', 'tramite.anexo')
+    id_col = os.getenv('DB_ID_COL', 'ane_ide')
+    text_col = os.getenv('DB_TEXT_COL', 'ane_htm')
+    summary_col = os.getenv('DB_SUMMARY_COL', 'resumen')
+    
     conn = get_db_connection()
     cur = conn.cursor()
-    query = """
-        SELECT a.ane_ide, a.ane_htm 
-        FROM tramite.anexo a
-        INNER JOIN tramite.expediente e ON e.exp_ide = a.exp_ide
-        WHERE a.ane_htm IS NOT NULL AND a.ane_htm != ''
-        AND (a.resumen IS NULL OR a.resumen = '')
+    # Query simplificada para generalización
+    query = f"""
+        SELECT {id_col}, {text_col} 
+        FROM {table}
+        WHERE {text_col} IS NOT NULL AND {text_col} != ''
+        AND ({summary_col} IS NULL OR {summary_col} = '')
         LIMIT %s;
     """
     cur.execute(query, (limit,))
@@ -37,11 +45,15 @@ def get_pending_records(limit=100):
     conn.close()
     return rows
 
-def update_summary(ane_ide, summary):
+def update_summary(record_id, summary):
+    table = os.getenv('DB_TABLE', 'tramite.anexo')
+    id_col = os.getenv('DB_ID_COL', 'ane_ide')
+    summary_col = os.getenv('DB_SUMMARY_COL', 'resumen')
+    
     conn = get_db_connection()
     cur = conn.cursor()
-    update_query = "UPDATE tramite.anexo SET resumen = %s WHERE ane_ide = %s"
-    cur.execute(update_query, (summary, ane_ide))
+    update_query = f"UPDATE {table} SET {summary_col} = %s WHERE {id_col} = %s"
+    cur.execute(update_query, (summary, record_id))
     conn.commit()
     cur.close()
     conn.close()

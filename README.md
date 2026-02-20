@@ -1,55 +1,70 @@
-# Resumidor de Expedientes - Yanahuara DB
+# Resumidor Universal de Tablas - PostgreSQL & Llama 3.1
 
-Este proyecto automatiza la generación de resúmenes para la columna `ane_htm` de la tabla `tramite.anexo` en la base de datos `yanahuara_db`. Utiliza inteligencia artificial (Llama 3.1) a través de Ollama para crear síntesis concisas de los documentos.
+Este proyecto es una herramienta flexible para generar resúmenes automáticos de cualquier tabla en una base de datos PostgreSQL utilizando el modelo Llama 3.1 (vía Ollama).
+
+## Características
+
+- **Totalmente Configurable**: No necesitas modificar el código. Todo se controla desde el archivo `.env`.
+- **Generalizado**: Funciona con cualquier tabla que tenga un identificador y una columna de texto.
+- **Limpieza Automática**: Remueve etiquetas HTML antes de procesar el texto.
+- **Idempotente**: No procesa registros que ya tienen un resumen.
+- **Seguro**: Crea automáticamente la columna de resumen si no existe.
 
 ## Estructura del Proyecto
 
-El sistema es modular para facilitar su mantenimiento:
+- `summarizer.py`: Punto de entrada modular.
+- `src/db/operations.py`: Lógica genérica de base de datos.
+- `src/ai/inference.py`: Comunicación con Ollama.
+- `src/processor/text_cleaner.py`: Limpieza de texto.
 
-- `summarizer.py`: Punto de entrada principal para ejecutar el procesamiento.
-- `src/db/operations.py`: Gestiona la conexión y operaciones con PostgreSQL, incluyendo la creación automática de columnas.
-- `src/ai/inference.py`: Gestiona la comunicación con la API de Ollama/Llama 3.1.
-- `src/processor/text_cleaner.py`: Limpia y prepara el texto (HTML) para la IA.
-- `requirements.txt`: Lista de dependencias de Python.
-- `.env.example`: Plantilla para la configuración de variables de entorno.
+## Configuración (.env)
 
-## Características Principales
+El script construye su propia consulta basada en estas variables. Aquí te explico cómo se traduce tu necesidad a la configuración:
 
-- **Portabilidad**: El script busca el archivo `.env` automáticamente en su propia carpeta, facilitando su uso en distintos equipos.
-- **Modulariad**: Código separado por responsabilidades (DB, AI, Procesamiento).
-- **Inicialización Automática**: El script crea la columna `resumen` automáticamente si no existe en la tabla `tramite.anexo`.
-- **Limpieza de HTML**: Extrae el texto plano de los campos HTML antes de enviarlos a la IA.
-- **Configurable**: Parámetros de conexión y modelo gestionados por variables de entorno.
+Si tu consulta original era:
+`SELECT id_unico, contenido_html FROM mi_esquema.mi_tabla;`
+
+Tu configuración en el `.env` debe ser:
+
+```text
+# Conexión
+DB_HOST=localhost
+DB_NAME=tu_base_de_datos
+DB_USER=postgres
+DB_PASS=tu_password
+DB_PORT=5432
+
+# Configuración Genérica de la Tabla
+DB_TABLE=mi_esquema.mi_tabla      # Nombre de la tabla (con esquema si aplica)
+DB_ID_COL=id_unico                 # La columna que sirve de ID para el registro
+DB_TEXT_COL=contenido_html         # La columna que tiene el texto/HTML a resumir
+DB_SUMMARY_COL=resumen            # Nombre de la columna donde se guardará el resumen
+```
 
 ## Requisitos
 
-1. **PostgreSQL**: Tener acceso a la base de datos `yanahuara_db`.
+1. **PostgreSQL**: Tener acceso a la base de datos.
 2. **Ollama**: Instalado y con el modelo `llama3.1` descargado (`ollama pull llama3.1`).
 3. **Python 3.x**: Instalación de dependencias.
 
-## Instalación
+## Instalación y Uso
 
-1. Clona el repositorio.
-2. Crea una copia de `.env.example` y llámala `.env`:
-   ```bash
-   copy .env.example .env
-   ```
-3. Edita el archivo `.env` con tus credenciales de base de datos y la URL de Ollama.
-4. Instala las dependencias:
+1. Instala las dependencias:
    ```bash
    pip install -r requirements.txt
    ```
+2. Configura tu `.env` (usa `.env.example` como guía).
+3. Ejecuta el resumidor:
+   ```bash
+   python summarizer.py
+   ```
 
-## Cómo usarlo
-
-Para procesar los registros pendientes de resumen, simplemente ejecuta:
-
-```powershell
-python summarizer.py
-```
-
-El script buscará el archivo `.env` en la misma carpeta donde se encuentra.
+## Funcionamiento Interno
+El script realiza los siguientes pasos automáticamente:
+1. Verifica si existe la columna de resumen; si no, la crea.
+2. Busca registros que tengan texto pero cuyo campo de resumen esté vacío (`NULL`).
+3. Limpia el HTML del texto extraído.
+4. Genera el resumen con Llama 3.1 y actualiza la fila correspondiente en la DB.
 
 ## Registro de Errores
-
-Si ocurre algún problema durante la inferencia de la IA, los detalles se guardarán en `error_log.txt`.
+Cualquier fallo durante el procesamiento se registrará en `error_log.txt`.
