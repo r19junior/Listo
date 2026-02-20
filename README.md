@@ -66,5 +66,30 @@ El script realiza los siguientes pasos automáticamente:
 3. Limpia el HTML del texto extraído.
 4. Genera el resumen con Llama 3.1 y actualiza la fila correspondiente en la DB.
 
+## Cómo usarlo
+
+Para procesar los registros pendientes de resumen, simplemente ejecuta:
+
+```powershell
+python summarizer.py
+```
+
+El script buscará el archivo `.env` en la misma carpeta donde se encuentra.
+
+## Ver Resultados
+
+Para verificar los resúmenes generados en tu base de datos, puedes ejecutar la siguiente consulta SQL:
+
+```sql
+SELECT 
+    DB_ID_COL, 
+    DB_TEXT_COL, 
+    DB_SUMMARY_COL 
+FROM DB_TABLE 
+WHERE DB_SUMMARY_COL IS NOT NULL;
+```
+
+*(Reemplaza los nombres de las columnas y la tabla por los que configuraste en tu `.env`)*.
+
 ## Registro de Errores
 Cualquier fallo durante el procesamiento se registrará en `error_log.txt`.
