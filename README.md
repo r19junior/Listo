@@ -11,10 +11,11 @@ El sistema es modular para facilitar su mantenimiento:
 - `src/ai/inference.py`: Gestiona la comunicación con la API de Ollama/Llama 3.1.
 - `src/processor/text_cleaner.py`: Limpia y prepara el texto (HTML) para la IA.
 - `requirements.txt`: Lista de dependencias de Python.
-- `.env`: Archivo de configuración (ubicado en `RESUMIDOR/`).
+- `.env.example`: Plantilla para la configuración de variables de entorno.
 
 ## Características Principales
 
+- **Portabilidad**: El script busca el archivo `.env` automáticamente en su propia carpeta, facilitando su uso en distintos equipos.
 - **Modulariad**: Código separado por responsabilidades (DB, AI, Procesamiento).
 - **Inicialización Automática**: El script crea la columna `resumen` automáticamente si no existe en la tabla `tramite.anexo`.
 - **Limpieza de HTML**: Extrae el texto plano de los campos HTML antes de enviarlos a la IA.
@@ -29,24 +30,15 @@ El sistema es modular para facilitar su mantenimiento:
 ## Instalación
 
 1. Clona el repositorio.
-2. Instala las dependencias necesarias:
+2. Crea una copia de `.env.example` y llámala `.env`:
+   ```bash
+   copy .env.example .env
+   ```
+3. Edita el archivo `.env` con tus credenciales de base de datos y la URL de Ollama.
+4. Instala las dependencias:
    ```bash
    pip install -r requirements.txt
    ```
-
-## Configuración
-
-Asegúrate de que el archivo `.env` en `d:\proyecto de investigacion\RESUMIDOR\.env` tenga los valores correctos:
-
-```text
-DB_HOST=localhost
-DB_NAME=yanahuara_db
-DB_USER=postgres
-DB_PASS=1234
-DB_PORT=5432
-AI_MODEL=llama3.1:latest
-OLLAMA_URL=http://localhost:11434/api/generate
-```
 
 ## Cómo usarlo
 
@@ -56,10 +48,7 @@ Para procesar los registros pendientes de resumen, simplemente ejecuta:
 python summarizer.py
 ```
 
-El script:
-1. Verificará que el esquema de la base de datos sea correcto (creará la columna `resumen` si falta).
-2. Buscará registros que no tengan resumen.
-3. Generará y guardará el resumen para cada uno.
+El script buscará el archivo `.env` en la misma carpeta donde se encuentra.
 
 ## Registro de Errores
 

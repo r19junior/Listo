@@ -4,9 +4,14 @@ from src.db.operations import get_pending_records, update_summary, init_db
 from src.processor.text_cleaner import clean_html
 from src.ai.inference import generate_summary
 
-# Cargar configuración desde el .env del proyecto RESUMIDOR
-dotenv_path = r"d:\proyecto de investigacion\RESUMIDOR\.env"
-load_dotenv(dotenv_path)
+# Cargar configuración desde el .env
+# Busca el archivo .env en la misma carpeta que el script
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+else:
+    # Fallback por si ejecutan desde otra carpeta o si aún usan la ruta anterior
+    load_dotenv()
 
 def main():
     try:
