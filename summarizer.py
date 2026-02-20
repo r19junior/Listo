@@ -20,15 +20,14 @@ def main():
         print(f"[INFO] Procesando {len(rows)} registros...")
         
         for ane_ide, ane_htm in rows:
-            print(f"[DEBUG] Procesando ID: {ane_ide}")
             text = clean_html(ane_htm)
             summary = generate_summary(text, ane_ide)
             
             if summary:
                 update_summary(ane_ide, summary)
-                print(f"[OK] Registro {ane_ide} resumido.")
+                print(f"[OK] ID {ane_ide}: Resumen generado exitosamente.")
             else:
-                print(f"[SKIP] No se pudo generar resumen para {ane_ide}.")
+                print(f"[WARN] ID {ane_ide}: No se pudo generar resumen.")
 
         print("[INFO] Proceso finalizado.")
 

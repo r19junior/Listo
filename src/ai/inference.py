@@ -11,7 +11,6 @@ def generate_summary(text, ane_ide):
     
     prompt = f"Resume el siguiente texto en una sola oración concisa (máximo 15 palabras): {text[:5000]}"
     try:
-        print(f"[DEBUG] Generando resumen para texto de {len(text)} caracteres...")
         res = requests.post(url, json={
             "model": model, 
             "prompt": prompt, 
@@ -26,5 +25,4 @@ def generate_summary(text, ane_ide):
         error_msg = f"[ERROR] {ane_ide}: {str(e)}"
         with open("error_log.txt", "a", encoding="utf-8") as f:
             f.write(error_msg + "\n")
-        print(f"{error_msg}")
         return None
